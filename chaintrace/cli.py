@@ -111,47 +111,47 @@ def main(
     # ------------------------------------------------------------------
     # 4. Scrape
     # ------------------------------------------------------------------
-    click.echo("Scraping sources...")
-    pages = scraper.scrape(results)
-    successful = [p for p in pages if p.success]
-    click.echo(f"Scraped {len(successful)}/{len(pages)} page(s) successfully.")
+    # click.echo("Scraping sources...")
+    # pages = scraper.scrape(results)
+    # successful = [p for p in pages if p.success]
+    # click.echo(f"Scraped {len(successful)}/{len(pages)} page(s) successfully.")
 
     # ------------------------------------------------------------------
     # 5. Aggregate
     # ------------------------------------------------------------------
-    aggregated_text = aggregator.aggregate(pages)
+    # aggregated_text = aggregator.aggregate(pages)
 
     # ------------------------------------------------------------------
     # 6. Gemini classification
     # ------------------------------------------------------------------
-    click.echo("Classifying with Gemini...")
-    prompt = gemini.build_prompt(query, aggregated_text)
-    raw_response = gemini.classify(prompt)
+    # click.echo("Classifying with Gemini...")
+    # prompt = gemini.build_prompt(query, aggregated_text)
+    # raw_response = gemini.classify(prompt)
 
     # ------------------------------------------------------------------
     # 7. Validate and parse
     # ------------------------------------------------------------------
-    component = validator.parse(raw_response)
+    # component = validator.parse(raw_response)
 
     # ------------------------------------------------------------------
     # 8. Cache save
     # ------------------------------------------------------------------
-    entry = CacheEntry(
-        query=query,
-        normalized_part_number=component.normalized_part_number,
-        search_results=results,
-        scraped_pages=pages,
-        gemini_prompt=prompt,
-        gemini_response=raw_response,
-        component_result=component,
-    )
-    saved_path = cache.save(entry, cache_dir=cache_path)
-    logger.debug("Cached result to %s", saved_path)
+    # entry = CacheEntry(
+    #     query=query,
+    #     normalized_part_number=component.normalized_part_number,
+    #     search_results=results,
+    #     scraped_pages=pages,
+    #     gemini_prompt=prompt,
+    #     gemini_response=raw_response,
+    #     component_result=component,
+    # )
+    # saved_path = cache.save(entry, cache_dir=cache_path)
+    # logger.debug("Cached result to %s", saved_path)
 
     # ------------------------------------------------------------------
     # 9. Display summary
     # ------------------------------------------------------------------
-    _display_result(component)
+    # _display_result(component)
 
 
 # ---------------------------------------------------------------------------
