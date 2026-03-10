@@ -160,7 +160,7 @@ def main(
 
 
 def _resolve_query(query: str | None) -> str:
-    """Return the final query string, prompting interactively if needed.
+    """Return the final query string
 
     Expands literal ``\\n`` sequences to real newlines.
 

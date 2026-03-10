@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Gemini model identifier. Override via CHAINTRACE_GEMINI_MODEL env var.
-DEFAULT_MODEL = "gemini-2.0-flash"
+DEFAULT_MODEL = "gemini-3-flash-preview"
 
 # JSON schema description embedded in the system prompt so Gemini returns
 # deterministic structured output.

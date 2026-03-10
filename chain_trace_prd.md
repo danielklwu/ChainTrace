@@ -298,7 +298,6 @@ Mitigation:
 
 Pending decisions:
 
-- Programming language (Python vs Go)
 - Search API provider
 - Scraping library (BeautifulSoup vs Playwright)
 - Gemini prompt structure strictness
