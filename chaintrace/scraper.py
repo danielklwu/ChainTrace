@@ -26,15 +26,38 @@ def scrape(results: Sequence[SearchResult]) -> list[ScrapedPage]:
         ``success=False`` and a descriptive ``error`` message so the caller
         can log / skip them without crashing.
     """
-    # TODO: implement scraping logic. Candidate libraries:
-    #   - requests + BeautifulSoup  (lightweight, no JS)
-    #   - Playwright                (handles JS-rendered pages / bot checks)
-    # Considerations:
-    #   - Strip navigation, headers, footers; keep main body text.
-    #   - Respect robots.txt where practical.
-    #   - Apply a reasonable timeout per request.
-    #   - Catch HTTP errors, connection errors, and encoding issues.
-    raise NotImplementedError
+    import requests
+
+    pages: list[ScrapedPage] = []
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
+    }
+
+    for result in results:
+        url = result.url
+        try:
+            response = requests.get(url, headers=headers, timeout=15)
+            response.raise_for_status()
+            text = extract_text(response.text)
+            logger.debug("Scraped %s (%d chars)", url, len(text))
+            pages.append(ScrapedPage(url=url, text=text, success=True))
+        except requests.exceptions.Timeout:
+            msg = "Request timed out"
+            logger.warning("Scrape failed [%s]: %s", url, msg)
+            pages.append(ScrapedPage(url=url, text="", success=False, error=msg))
+        except requests.exceptions.HTTPError as exc:
+            msg = f"HTTP {exc.response.status_code}"
+            logger.warning("Scrape failed [%s]: %s", url, msg)
+            pages.append(ScrapedPage(url=url, text="", success=False, error=msg))
+        except requests.exceptions.RequestException as exc:
+            msg = str(exc)
+            logger.warning("Scrape failed [%s]: %s", url, msg)
+            pages.append(ScrapedPage(url=url, text="", success=False, error=msg))
+
+    return pages
 
 
 def extract_text(html: str) -> str:
@@ -46,6 +69,15 @@ def extract_text(html: str) -> str:
     Returns:
         Plain text suitable for feeding into the LLM prompt.
     """
-    # TODO: parse with BeautifulSoup / lxml, remove script/style tags,
-    # collapse whitespace, and return the body text.
-    raise NotImplementedError
+    import re
+
+    from bs4 import BeautifulSoup
+
+    soup = BeautifulSoup(html, "lxml")
+
+    for tag in soup(["script", "style", "nav", "header", "footer", "aside"]):
+        tag.decompose()
+
+    text = soup.get_text(separator=" ")
+    text = re.sub(r"\s+", " ", text).strip()
+    return text

@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import logging
 
+from google import genai
+from google.genai import types
+
 logger = logging.getLogger(__name__)
 
 # Gemini model identifier. Override via CHAINTRACE_GEMINI_MODEL env var.
-DEFAULT_MODEL = "gemini-3-flash-preview"
+DEFAULT_MODEL = "gemini-2.5-flash"
 
 # JSON schema description embedded in the system prompt so Gemini returns
 # deterministic structured output.
@@ -45,12 +48,31 @@ def build_prompt(query: str, aggregated_text: str) -> str:
     Returns:
         A complete prompt string ready to be sent to the Gemini API.
     """
-    # TODO: craft the system + user prompt. Key requirements:
-    # - Strict JSON output instruction (no markdown fences, no extra prose).
-    # - URL citation requirement.
-    # - Risk indicator enumeration guidance.
-    # - Confidence scoring guidance.
-    raise NotImplementedError
+    return f"""\
+Your task is to identify an electronic component from a PCB board marking and \
+extract structured metadata from the provided source content.
+
+## Rules
+- Output ONLY a single valid JSON object. No markdown fences, no prose, no explanation.
+- Use only information present in the SOURCE CONTENT below. Do not hallucinate.
+- For `datasheet_url`: use a URL that appears verbatim in the source content, or null if none found.
+- For `risk_indicators`: list any of the following if explicitly mentioned in the sources:
+  export control warnings, sanctioned entity, end-of-life (EOL), obsolete part,
+  counterfeit warning, manufacturing region flagged in policy databases.
+  If none found, use an empty array.
+- For `confidence_score`: a float from 0.0 to 1.0 reflecting how certain you are in the
+  identification, based on how clearly the sources match the marking.
+- For `manufacturer_country`: infer from the manufacturer name or source text; null if unknown.
+
+## Output Schema
+{OUTPUT_SCHEMA}
+
+## Board Marking (user input)
+{query}
+
+## Source Content
+{aggregated_text if aggregated_text else "(no sources retrieved)"}
+"""
 
 
 def classify(prompt: str, model: str = DEFAULT_MODEL) -> str:
@@ -67,10 +89,33 @@ def classify(prompt: str, model: str = DEFAULT_MODEL) -> str:
         RuntimeError: On API authentication failure, network error, or
             response timeout.
     """
-    # TODO:
-    # 1. Load GOOGLE_API_KEY from environment.
-    # 2. Initialise google-generativeai client.
-    # 3. Call model.generate_content(prompt) with appropriate generation config
-    #    (temperature=0 for determinism, max_output_tokens budget).
-    # 4. Return response.text.
-    raise NotImplementedError
+    import os
+
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "GOOGLE_API_KEY environment variable is not set. "
+            "Copy .env.example to .env and add your key."
+        )
+
+    client = genai.Client(api_key=api_key)
+
+    try:
+        response = client.models.generate_content(
+            model=model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction="You are an expert hardware component identification system.",
+                max_output_tokens=2000,
+                response_mime_type= 'application/json',
+            )
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Gemini API error: {exc}") from exc
+
+    logger.debug("Gemini raw response: %s", response.text)
+    return response.text

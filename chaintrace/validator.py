@@ -42,13 +42,32 @@ def parse(raw_response: str) -> ComponentResult:
         ValueError: If the response is not valid JSON or is missing required
             fields.
     """
-    # TODO:
-    # 1. Strip any accidental markdown code fences (```json ... ```).
-    # 2. json.loads() — raise ValueError with context on failure.
-    # 3. Validate all REQUIRED_KEYS are present.
-    # 4. Coerce types (confidence_score → float, risk_indicators → list).
-    # 5. Construct and return a ComponentResult.
-    raise NotImplementedError
+    import re
+
+    # Strip accidental markdown code fences.
+    text = raw_response.strip()
+    text = re.sub(r"^```(?:json)?\s*", "", text)
+    text = re.sub(r"\s*```$", "", text)
+    text = text.strip()
+
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Gemini response is not valid JSON: {exc}\nRaw: {text[:500]}") from exc
+
+    validate_schema(data)
+
+    return ComponentResult(
+        input_query=str(data["input_query"]),
+        normalized_part_number=str(data["normalized_part_number"]),
+        component_type=str(data["component_type"]),
+        manufacturer=str(data["manufacturer"]),
+        manufacturer_country=data["manufacturer_country"],
+        datasheet_url=data["datasheet_url"],
+        description=str(data["description"]),
+        risk_indicators=list(data.get("risk_indicators") or []),
+        confidence_score=float(data.get("confidence_score", 0.0)),
+    )
 
 
 def validate_schema(data: dict[str, Any]) -> None:
@@ -60,5 +79,6 @@ def validate_schema(data: dict[str, Any]) -> None:
     Raises:
         ValueError: Listing every missing key.
     """
-    # TODO: compute missing = REQUIRED_KEYS - data.keys() and raise if non-empty.
-    raise NotImplementedError
+    missing = REQUIRED_KEYS - data.keys()
+    if missing:
+        raise ValueError(f"Gemini response missing required fields: {sorted(missing)}")
