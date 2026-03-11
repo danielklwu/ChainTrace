@@ -31,12 +31,18 @@ def aggregate(pages: Sequence[ScrapedPage]) -> str:
     Returns:
         A single string suitable for inclusion in the Gemini prompt.
     """
-    # TODO:
-    # 1. Filter to successful pages.
-    # 2. Truncate each page's text to MAX_CHARS_PER_PAGE.
-    # 3. Prefix with "--- Source: <url> ---".
-    # 4. Join sections and return.
-    raise NotImplementedError
+    sections: list[str] = []
+    for page in pages:
+        if not page.success:
+            continue
+        body = truncate(page.text)
+        sections.append(f"--- Source: {page.url} ---\n{body}")
+
+    if not sections:
+        logger.warning("No successful pages to aggregate.")
+        return ""
+
+    return "\n\n".join(sections)
 
 
 def truncate(text: str, max_chars: int = MAX_CHARS_PER_PAGE) -> str:
@@ -49,5 +55,6 @@ def truncate(text: str, max_chars: int = MAX_CHARS_PER_PAGE) -> str:
     Returns:
         Truncated string, with an ellipsis appended if content was removed.
     """
-    # TODO: implement truncation with ellipsis indicator.
-    raise NotImplementedError
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars] + "…"
