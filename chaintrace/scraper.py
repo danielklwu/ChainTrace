@@ -7,7 +7,11 @@ Handles common scraping obstacles gracefully and never raises silently.
 from __future__ import annotations
 
 import logging
+import re
 from typing import Sequence
+
+import requests
+from bs4 import BeautifulSoup
 
 from chaintrace.models import ScrapedPage, SearchResult
 
@@ -26,8 +30,6 @@ def scrape(results: Sequence[SearchResult]) -> list[ScrapedPage]:
         ``success=False`` and a descriptive ``error`` message so the caller
         can log / skip them without crashing.
     """
-    import requests
-
     pages: list[ScrapedPage] = []
     headers = {
         "User-Agent": (
@@ -69,10 +71,6 @@ def extract_text(html: str) -> str:
     Returns:
         Plain text suitable for feeding into the LLM prompt.
     """
-    import re
-
-    from bs4 import BeautifulSoup
-
     soup = BeautifulSoup(html, "lxml")
 
     for tag in soup(["script", "style", "nav", "header", "footer", "aside"]):

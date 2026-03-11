@@ -7,7 +7,9 @@ Gemini API, and returns the raw JSON response string.
 from __future__ import annotations
 
 import logging
+import os
 
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
@@ -89,10 +91,6 @@ def classify(prompt: str, model: str = DEFAULT_MODEL) -> str:
         RuntimeError: On API authentication failure, network error, or
             response timeout.
     """
-    import os
-
-    from dotenv import load_dotenv
-
     load_dotenv()
 
     api_key = os.getenv("GOOGLE_API_KEY")
