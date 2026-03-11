@@ -69,14 +69,17 @@ chaintrace -v "DAC32031"
 ### Example output
 
 ```
-Part:           DAC32031
-Manufacturer:   Texas Instruments
-Country:        US
-Type:           Digital-to-Analog Converter
-Description:    High-speed 16-bit DAC.
-Datasheet:      https://www.ti.com/lit/ds/symlink/dac32031.pdf
-Risk Indicators: None detected
-Confidence:     0.92
+Part:               DAC32031
+Manufacturer:       Texas Instruments
+Country:            USA
+Type:               Integrated Circuit (IC)
+Datasheet:          https://www.ti.com/lit/ds/symlink/dac32031.pdf
+Risk Indicators:    None detected
+Confidence:         0.90
+
+Description:
+The DAC32031 is a specialized integrated circuit from Texas
+Instruments, functioning as a Digital-to-Analog Converter (DAC).
 ```
 
 ---
