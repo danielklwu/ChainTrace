@@ -24,13 +24,26 @@ OUTPUT_SCHEMA = """\
 {
   "input_query": "string",
   "normalized_part_number": "string",
-  "component_type": "string",
   "manufacturer": "string",
   "manufacturer_country": "string | null",
-  "datasheet_url": "string | null",
+  "component_type": "string",
   "description": "string",
+  "datasheet_url": "string | null",
   "risk_indicators": ["string"],
   "confidence_score": 0.0
+}"""
+
+EXAMPLE_RESPONSE = """\
+{
+    "input_query": "DAC32031",
+    "normalized_part_number": "DAC32031",
+    "manufacturer": "Texas Instruments",
+    "manufacturer_country": "USA",
+    "component_type": "Digital-to-Analog Converter (DAC)",
+    "description": "The DAC32031 is a high-speed, 16-bit digital-to-analog converter (DAC) from Texas Instruments. It features a sampling rate of up to 500 MSPS, low power consumption, and a wide supply voltage range. The DAC32031 is commonly used in applications such as communications, instrumentation, and signal generation.",
+    "datasheet_url": "https://www.ti.com/lit/ds/symlink/dac32031.pdf",
+    "risk_indicators": ["end-of-life (EOL)"],
+    "confidence_score": 0.95
 }"""
 
 
@@ -57,6 +70,8 @@ extract structured metadata from the provided source content.
 ## Rules
 - Output ONLY a single valid JSON object. No markdown fences, no prose, no explanation.
 - Use only information present in the SOURCE CONTENT below. Do not hallucinate.
+- For `manufacturer_country`: infer from the manufacturer name or source text; null if unknown.
+- For `description`: provide a concise summary of the component's function and key characteristics, based solely on the sources.
 - For `datasheet_url`: use a URL that appears verbatim in the source content, or null if none found.
 - For `risk_indicators`: list any of the following if explicitly mentioned in the sources:
   export control warnings, sanctioned entity, end-of-life (EOL), obsolete part,
@@ -64,7 +79,6 @@ extract structured metadata from the provided source content.
   If none found, use an empty array.
 - For `confidence_score`: a float from 0.0 to 1.0 reflecting how certain you are in the
   identification, based on how clearly the sources match the marking.
-- For `manufacturer_country`: infer from the manufacturer name or source text; null if unknown.
 
 ## Output Schema
 {OUTPUT_SCHEMA}
@@ -74,6 +88,9 @@ extract structured metadata from the provided source content.
 
 ## Source Content
 {aggregated_text if aggregated_text else "(no sources retrieved)"}
+
+## Example Response
+{EXAMPLE_RESPONSE}
 """
 
 

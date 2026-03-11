@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import sys
+import textwrap
 
 import click
 
@@ -191,18 +192,23 @@ def _resolve_query(query: str | None) -> str:
 
 def _display_result(component) -> None:
     """Print a human-readable summary of *component* to stdout."""
+    import textwrap
+
     risk = ", ".join(component.risk_indicators) if component.risk_indicators else "None detected"
     datasheet = component.datasheet_url or "N/A"
 
     click.echo("\n" + "─" * 50)
-    click.echo(f"Part:             {component.normalized_part_number}")
-    click.echo(f"Manufacturer:     {component.manufacturer}")
-    click.echo(f"Country:          {component.manufacturer_country or 'Unknown'}")
-    click.echo(f"Type:             {component.component_type}")
-    click.echo(f"Description:      {component.description}")
-    click.echo(f"Datasheet:        {datasheet}")
-    click.echo(f"Risk Indicators:  {' ' + risk}")
-    click.echo(f"Confidence:       {component.confidence_score:.2f}")
+    click.echo(f"Part:               {component.normalized_part_number}")
+    click.echo(f"Manufacturer:       {component.manufacturer}")
+    click.echo(f"Country:            {component.manufacturer_country or 'Unknown'}")
+    click.echo(f"Type:               {component.component_type}")
+
+    click.echo(f"Datasheet:          {datasheet}")
+    click.echo(f"Risk Indicators:    {risk}")
+    click.echo(f"Confidence:         {component.confidence_score:.2f}")
+
+    desc = textwrap.fill(component.description, width=70)
+    click.echo(f"\nDescription:\n{desc}")
     click.echo("─" * 50)
 
 
